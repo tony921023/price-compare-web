@@ -8,31 +8,31 @@ export type Offer = {
   price: number;
   url: string;
   updatedAt: string;
-  badge?: string;
+  badge?: string; // 後端回 "最低" / "可買"
 };
 
 export type SearchOptions = {
   minPrice?: number | null;
   maxPrice?: number | null;
+  signal?: AbortSignal;
 };
-
-async function json<T>(resp: Response): Promise<T> {
-  const data = await resp.json().catch(() => ({}));
-  if (!resp.ok) throw new Error((data as any)?.message || `HTTP ${resp.status}`);
-  return data as T;
-}
 
 export async function searchProducts(query: string, opts: SearchOptions = {}): Promise<Offer[]> {
   const q = query.trim();
   if (!q) return [];
 
-  const params = new URLSearchParams();
-  params.set("q", q);
+  const sp = new URLSearchParams();
+  sp.set("q", q);
 
-  if (typeof opts.minPrice === "number") params.set("minPrice", String(opts.minPrice));
-  if (typeof opts.maxPrice === "number") params.set("maxPrice", String(opts.maxPrice));
+  if (typeof opts.minPrice === "number") sp.set("minPrice", String(opts.minPrice));
+  if (typeof opts.maxPrice === "number") sp.set("maxPrice", String(opts.maxPrice));
 
-  const resp = await fetch(`/api/search?${params.toString()}`);
-  const data = await json<{ items: Offer[] }>(resp);
-  return data.items ?? [];
+  const resp = await fetch(`/api/search?${sp.toString()}`, {
+    signal: opts.signal,
+  });
+
+  if (!resp.ok) throw new Error(`search failed: ${resp.status}`);
+
+  const data = await resp.json();
+  return (data?.items ?? []) as Offer[];
 }
