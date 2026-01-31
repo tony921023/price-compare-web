@@ -1,0 +1,43 @@
+:root {
+  --bg: #f7f9ff;
+  --card: rgba(255, 255, 255, 0.78);
+  --card-solid: #ffffff;
+  --border: rgba(20, 30, 60, 0.12);
+  --text: #0b1020;
+  --muted: rgba(11, 16, 32, 0.65);
+  --shadow: 0 10px 30px rgba(20, 40, 120, 0.12);
+  --accent: #5b7cfa;
+  --accent2: #a855f7;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--text);
+  background: radial-gradient(1200px 600px at 20% -10%, rgba(91,124,250,0.25), transparent 55%),
+              radial-gradient(900px 500px at 90% 0%, rgba(168,85,247,0.18), transparent 50%),
+              radial-gradient(800px 600px at 50% 110%, rgba(91,124,250,0.12), transparent 60%),
+              var(--bg);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif;
+}
+
+/* 淡淡的科技網格 */
+body::before{
+  content:"";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgba(20,30,60,0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(20,30,60,0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(closest-side at 50% 30%, rgba(0,0,0,0.6), transparent 70%);
+  opacity: 0.6;
+}
+
+a { color: inherit; text-decoration: none; }
