@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import "./App.css";
-
+import { searchProducts } from './services/searchProducts';
 type Platform = "momo" | "pchome" | "shopee";
 type Offer = {
   platform: Platform;
