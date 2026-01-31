@@ -16,22 +16,23 @@ export type SearchOptions = {
   maxPrice?: number | null;
 };
 
-export async function searchProducts(query: string, opts?: SearchOptions): Promise<Offer[]> {
+async function json<T>(resp: Response): Promise<T> {
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) throw new Error((data as any)?.message || `HTTP ${resp.status}`);
+  return data as T;
+}
+
+export async function searchProducts(query: string, opts: SearchOptions = {}): Promise<Offer[]> {
   const q = query.trim();
   if (!q) return [];
 
   const params = new URLSearchParams();
   params.set("q", q);
 
-  const min = opts?.minPrice;
-  const max = opts?.maxPrice;
-
-  if (typeof min === "number" && Number.isFinite(min)) params.set("minPrice", String(min));
-  if (typeof max === "number" && Number.isFinite(max)) params.set("maxPrice", String(max));
+  if (typeof opts.minPrice === "number") params.set("minPrice", String(opts.minPrice));
+  if (typeof opts.maxPrice === "number") params.set("maxPrice", String(opts.maxPrice));
 
   const resp = await fetch(`/api/search?${params.toString()}`);
-  if (!resp.ok) throw new Error(`search failed: ${resp.status}`);
-
-  const data = await resp.json();
-  return (data?.items ?? []) as Offer[];
+  const data = await json<{ items: Offer[] }>(resp);
+  return data.items ?? [];
 }
