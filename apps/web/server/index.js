@@ -3,6 +3,8 @@ import express from "express";
 import cors from "cors";
 import cookieSession from "cookie-session";
 import bcrypt from "bcryptjs";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import { buildDemoItems } from "./demo-items.js";
 import pool, { initDb } from "./db.js";
 
@@ -29,7 +31,8 @@ app.use(
   })
 );
 
-app.use(express.json());
+app.use(helmet());
+app.use(express.json({ limit: "100kb" }));
 
 /**
  * ✅ cookie session
@@ -52,6 +55,15 @@ app.use(
 app.get("/healthz", (_req, res) => {
   res.json({ ok: true, ts: new Date().toISOString() });
 });
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 分鐘
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "too many requests, try again later" },
+});
+app.use("/api/auth", authLimiter);
 
 /* =========================
  *  Auth（PostgreSQL）
