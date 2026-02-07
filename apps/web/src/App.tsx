@@ -111,9 +111,8 @@ export default function App() {
   }, [sorted]);
 
   // ✅ 實際打 API 的函式（支援 Abort + 可傳 nextQ）
-  async function doSearch(opts?: { nextQ?: string; immediate?: boolean }) {
+  async function doSearch(opts?: { nextQ?: string }) {
     const nextQ = opts?.nextQ;
-    const immediate = opts?.immediate ?? false;
 
     const q = (nextQ ?? query).trim();
 
@@ -163,8 +162,6 @@ export default function App() {
     } finally {
       if (!ac.signal.aborted) setLoading(false);
     }
-
-    void immediate;
   }
 
   // ✅ 即時搜尋：query/min/max 變動後 350ms 自動更新
@@ -180,7 +177,7 @@ export default function App() {
     if (!q) return;
 
     const t = window.setTimeout(() => {
-      doSearch({ immediate: false });
+      doSearch();
     }, 350);
 
     return () => window.clearTimeout(t);
@@ -189,7 +186,7 @@ export default function App() {
 
   // 原本的 onSearch（按鈕 / Enter）→ 立即搜
   async function onSearch(nextQ?: string) {
-    await doSearch({ nextQ, immediate: true });
+    await doSearch({ nextQ });
   }
 
   function applyPreset(p: { min?: number; max?: number }) {

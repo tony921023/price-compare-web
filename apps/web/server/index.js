@@ -5,12 +5,14 @@ import cookieSession from "cookie-session";
 import bcrypt from "bcryptjs";
 
 const app = express();
+const isProd = process.env.NODE_ENV === "production";
 
-/**
- * ✅ CORS：讓前端能帶 cookie（session）
- * - 前端若是 Vite：通常 http://localhost:5173
- * - 如果你改了 port，記得改這裡或用環境變數 WEB_ORIGIN
- */
+// Production 啟動前檢查
+if (isProd && !process.env.SESSION_SECRET) {
+  console.error("FATAL: SESSION_SECRET is required in production. Exiting.");
+  process.exit(1);
+}
+
 const WEB_ORIGIN = process.env.WEB_ORIGIN || "http://localhost:5173";
 
 app.use(
@@ -39,7 +41,7 @@ app.use(
     keys: [process.env.SESSION_SECRET || "dev-secret-change-me"],
     httpOnly: true,
     sameSite: "lax",
-    secure: false, // production(https) 改 true
+    secure: isProd,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 天
   })
 );
