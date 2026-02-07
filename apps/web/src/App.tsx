@@ -156,10 +156,10 @@ export default function App() {
 
       setOffers(items);
       pushRecent(q);
-    } catch (e: any) {
-      if (e?.name === "AbortError") return;
+    } catch (e: unknown) {
+      if (e instanceof DOMException && e.name === "AbortError") return;
       setOffers([]);
-      setError(e?.message ?? "搜尋失敗");
+      setError(e instanceof Error ? e.message : "搜尋失敗");
     } finally {
       if (!ac.signal.aborted) setLoading(false);
     }
@@ -208,8 +208,8 @@ export default function App() {
       setUser(u);
       setAuthOpen(false);
       setAuthPassword("");
-    } catch (e: any) {
-      setAuthError(e?.message ?? "操作失敗");
+    } catch (e: unknown) {
+      setAuthError(e instanceof Error ? e.message : "操作失敗");
     } finally {
       setAuthLoading(false);
     }
@@ -400,8 +400,7 @@ export default function App() {
           </div>
         ) : (
           sorted.map((o, idx) => {
-            const badge = (o as any).badge as string | undefined;
-            const isBest = badge ? badge === "最低" : minPrice != null && o.price === minPrice;
+            const isBest = o.badge ? o.badge === "最低" : minPrice != null && o.price === minPrice;
 
             return (
               <div key={`${o.platform}-${o.url}-${idx}`} className="row">

@@ -2,8 +2,8 @@
 export type User = { id: number; email: string; createdAt: string };
 
 async function json<T>(resp: Response): Promise<T> {
-  const data = await resp.json().catch(() => ({}));
-  if (!resp.ok) throw new Error((data as any)?.message || `HTTP ${resp.status}`);
+  const data: Record<string, unknown> = await resp.json().catch(() => ({}));
+  if (!resp.ok) throw new Error(typeof data.message === "string" ? data.message : `HTTP ${resp.status}`);
   return data as T;
 }
 
