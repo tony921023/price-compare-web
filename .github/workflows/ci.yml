@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: pp
+          POSTGRES_PASSWORD: pp_pass
+          POSTGRES_DB: pricepulse
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U pp"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install frontend deps
+        run: npm ci
+        working-directory: apps/web
+
+      - name: Install server deps
+        run: npm ci
+        working-directory: apps/web/server
+
+      - name: Lint
+        run: npm run lint
+        working-directory: apps/web
+
+      - name: Build
+        run: npm run build
+        working-directory: apps/web
+
+      - name: Test
+        run: npm test
+        working-directory: apps/web
+
+      - name: Verify server starts
+        working-directory: apps/web/server
+        env:
+          POSTGRES_PASSWORD: pp_pass
+        run: |
+          timeout 5 node index.js &
+          sleep 3
+          curl -sf http://localhost:8787/healthz | grep '"ok":true'
