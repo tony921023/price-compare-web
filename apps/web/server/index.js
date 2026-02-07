@@ -65,6 +65,8 @@ const authLimiter = rateLimit({
 });
 app.use("/api/auth", authLimiter);
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 /* =========================
  *  Auth（PostgreSQL）
  * ========================= */
@@ -99,7 +101,9 @@ app.post("/api/auth/register", async (req, res) => {
     const password = String(req.body?.password ?? "");
 
     if (!email || !password) return res.status(400).json({ message: "email/password required" });
+    if (!EMAIL_RE.test(email)) return res.status(400).json({ message: "invalid email" });
     if (password.length < 6) return res.status(400).json({ message: "password too short" });
+    if (password.length > 128) return res.status(400).json({ message: "password too long" });
 
     const exists = await pool.query("SELECT 1 FROM users WHERE email = $1", [email]);
     if (exists.rows.length) return res.status(409).json({ message: "email already exists" });
@@ -123,6 +127,10 @@ app.post("/api/auth/login", async (req, res) => {
   try {
     const email = String(req.body?.email ?? "").trim().toLowerCase();
     const password = String(req.body?.password ?? "");
+
+    if (!email || !password || !EMAIL_RE.test(email)) {
+      return res.status(401).json({ message: "invalid email or password" });
+    }
 
     const { rows } = await pool.query("SELECT id, email, password_hash, created_at FROM users WHERE email = $1", [email]);
     if (!rows.length) return res.status(401).json({ message: "invalid email or password" });
@@ -163,9 +171,13 @@ app.get("/api/search", async (req, res) => {
   try {
     const q = String(req.query.q ?? "").trim();
     if (!q) return res.json({ items: [] });
+    if (q.length > 200) return res.status(400).json({ message: "query too long" });
 
     const minPrice = toNum(req.query.minPrice);
     const maxPrice = toNum(req.query.maxPrice);
+
+    if (minPrice != null && (minPrice < 0 || minPrice > 999999)) return res.status(400).json({ message: "minPrice out of range" });
+    if (maxPrice != null && (maxPrice < 0 || maxPrice > 999999)) return res.status(400).json({ message: "maxPrice out of range" });
 
     await new Promise((r) => setTimeout(r, 150));
 
