@@ -41,5 +41,6 @@ export async function login(email: string, password: string): Promise<User> {
 }
 
 export async function logout(): Promise<void> {
-  await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+  const resp = await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+  if (!resp.ok) throw new Error(`登出失敗: HTTP ${resp.status}`);
 }

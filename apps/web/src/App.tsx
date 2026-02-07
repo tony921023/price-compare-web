@@ -52,6 +52,8 @@ export default function App() {
 
   const [user, setUser] = useState<User | null>(null);
 
+  const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
+
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [authEmail, setAuthEmail] = useState("");
@@ -215,6 +217,8 @@ export default function App() {
   async function doLogout() {
     try {
       await logout();
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "登出失敗");
     } finally {
       setUser(null);
     }
@@ -255,7 +259,7 @@ export default function App() {
             </button>
           )}
 
-          <button className="btn" onClick={() => alert("下一步接：登入後的追蹤清單 / 貼 URL 追蹤")}>
+          <button className="btn" disabled title="即將推出">
             追蹤清單
           </button>
         </div>
@@ -420,11 +424,14 @@ export default function App() {
                     className="ghostBtn"
                     type="button"
                     onClick={() => {
-                      navigator.clipboard?.writeText(o.url);
+                      navigator.clipboard?.writeText(o.url).then(
+                        () => { setCopiedUrl(o.url); setTimeout(() => setCopiedUrl(null), 1500); },
+                        () => { setCopiedUrl(null); },
+                      );
                     }}
                     title="複製連結"
                   >
-                    複製
+                    {copiedUrl === o.url ? "已複製" : "複製"}
                   </button>
                 </div>
               </div>
