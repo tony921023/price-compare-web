@@ -4,6 +4,7 @@ import cors from "cors";
 import cookieSession from "cookie-session";
 import bcrypt from "bcryptjs";
 import { buildDemoItems } from "./demo-items.js";
+import pool, { initDb } from "./db.js";
 
 const app = express();
 const isProd = process.env.NODE_ENV === "production";
@@ -53,14 +54,11 @@ app.get("/healthz", (_req, res) => {
 });
 
 /* =========================
- *  Auth（暫存使用者：先不用 DB）
+ *  Auth（PostgreSQL）
  * ========================= */
 
-const users = new Map(); // key=email -> { id, email, passwordHash, createdAt }
-let uid = 1;
-
-function publicUser(u) {
-  return { id: u.id, email: u.email, createdAt: u.createdAt };
+function publicUser(row) {
+  return { id: row.id, email: row.email, createdAt: row.created_at };
 }
 
 function requireLogin(req, res, next) {
@@ -69,12 +67,17 @@ function requireLogin(req, res, next) {
 }
 
 // 取得目前登入狀態
-app.get("/api/auth/me", (req, res) => {
-  const id = req.session?.uid;
-  if (!id) return res.json({ user: null });
+app.get("/api/auth/me", async (req, res) => {
+  try {
+    const id = req.session?.uid;
+    if (!id) return res.json({ user: null });
 
-  const u = [...users.values()].find((x) => x.id === id);
-  return res.json({ user: u ? publicUser(u) : null });
+    const { rows } = await pool.query("SELECT id, email, created_at FROM users WHERE id = $1", [id]);
+    return res.json({ user: rows[0] ? publicUser(rows[0]) : null });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "internal error" });
+  }
 });
 
 // 註冊（註冊完直接登入）
@@ -85,14 +88,18 @@ app.post("/api/auth/register", async (req, res) => {
 
     if (!email || !password) return res.status(400).json({ message: "email/password required" });
     if (password.length < 6) return res.status(400).json({ message: "password too short" });
-    if (users.has(email)) return res.status(409).json({ message: "email already exists" });
+
+    const exists = await pool.query("SELECT 1 FROM users WHERE email = $1", [email]);
+    if (exists.rows.length) return res.status(409).json({ message: "email already exists" });
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = { id: uid++, email, passwordHash, createdAt: new Date().toISOString() };
-    users.set(email, user);
+    const { rows } = await pool.query(
+      "INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email, created_at",
+      [email, passwordHash],
+    );
 
-    req.session.uid = user.id;
-    res.json({ user: publicUser(user) });
+    req.session.uid = rows[0].id;
+    res.json({ user: publicUser(rows[0]) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "internal error" });
@@ -105,10 +112,11 @@ app.post("/api/auth/login", async (req, res) => {
     const email = String(req.body?.email ?? "").trim().toLowerCase();
     const password = String(req.body?.password ?? "");
 
-    const user = users.get(email);
-    if (!user) return res.status(401).json({ message: "invalid email or password" });
+    const { rows } = await pool.query("SELECT id, email, password_hash, created_at FROM users WHERE email = $1", [email]);
+    if (!rows.length) return res.status(401).json({ message: "invalid email or password" });
 
-    const ok = await bcrypt.compare(password, user.passwordHash);
+    const user = rows[0];
+    const ok = await bcrypt.compare(password, user.password_hash);
     if (!ok) return res.status(401).json({ message: "invalid email or password" });
 
     req.session.uid = user.id;
@@ -125,7 +133,7 @@ app.post("/api/auth/logout", (req, res) => {
   res.json({ ok: true });
 });
 
-// ✅ 之後你要做「追蹤清單」可以先用這個保護路由
+// 保護路由（追蹤清單用）
 app.get("/api/private/ping", requireLogin, (req, res) => {
   res.json({ ok: true, uid: req.session.uid });
 });
@@ -158,7 +166,15 @@ app.get("/api/search", async (req, res) => {
 });
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 8787;
-app.listen(PORT, () => {
-  console.log(`API server running on http://localhost:${PORT}`);
-  console.log(`CORS origin allow: ${WEB_ORIGIN}`);
-});
+
+initDb()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`API server running on http://localhost:${PORT}`);
+      console.log(`CORS origin allow: ${WEB_ORIGIN}`);
+    });
+  })
+  .catch((err) => {
+    console.error("FATAL: DB init failed:", err.message);
+    process.exit(1);
+  });
