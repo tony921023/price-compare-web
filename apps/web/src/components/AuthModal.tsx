@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { login, register, type User } from "../services/auth";
 
 type Props = {
@@ -23,11 +23,20 @@ export default function AuthModal({ open, onClose, onLogin }: Props) {
       setPassword("");
       onLogin(u);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "æ“ä½œå¤±æ•—");
+      setError(e instanceof Error ? e.message : "µo¥Í¿ù»~");
     } finally {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
 
   if (!open) return null;
 
@@ -35,28 +44,43 @@ export default function AuthModal({ open, onClose, onLogin }: Props) {
     <div className="modalMask" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modalTop">
-          <div className="modalTitle">{mode === "login" ? "ç™»å…¥" : "è¨»å†Š"}</div>
+          <div className="modalTitle">{mode === "login" ? "µn¤J" : "µù¥U"}</div>
           <button className="modalX" onClick={onClose} type="button">
-            Ã—
+            ¡Ñ
           </button>
         </div>
 
         <div className="modalTabs">
-          <button className={`tabBtn ${mode === "login" ? "tabActive" : ""}`} onClick={() => setMode("login")} type="button">
-            ç™»å…¥
+          <button
+            className={`tabBtn ${mode === "login" ? "tabActive" : ""}`}
+            onClick={() => setMode("login")}
+            type="button"
+          >
+            µn¤J
           </button>
-          <button className={`tabBtn ${mode === "register" ? "tabActive" : ""}`} onClick={() => setMode("register")} type="button">
-            è¨»å†Š
+          <button
+            className={`tabBtn ${mode === "register" ? "tabActive" : ""}`}
+            onClick={() => setMode("register")}
+            type="button"
+          >
+            µù¥U
           </button>
         </div>
 
         <div className="modalBody">
-          <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
+          <input
+            className="input"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+          />
           <input
             className="input"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="å¯†ç¢¼ï¼ˆè‡³å°‘ 6 ç¢¼ï¼‰"
+            placeholder="±K½X¡]¦Ü¤Ö 6 ½X¡^"
             type="password"
             style={{ marginTop: 10 }}
             onKeyDown={(e) => {
@@ -67,10 +91,10 @@ export default function AuthModal({ open, onClose, onLogin }: Props) {
           {error && <div style={{ marginTop: 10, color: "crimson" }}>{error}</div>}
 
           <button className="btn btnPrimary" style={{ width: "100%", marginTop: 12 }} onClick={submit} disabled={loading}>
-            {loading ? "è™•ç†ä¸­â€¦" : mode === "login" ? "ç™»å…¥" : "è¨»å†Š"}
+            {loading ? "³B²z¤¤¡K" : mode === "login" ? "µn¤J" : "µù¥U"}
           </button>
 
-          <div className="modalHint">å¸³è™Ÿè³‡æ–™å·²å„²å­˜è‡³è³‡æ–™åº«ï¼Œé‡å•Ÿå¾Œä»ä¿ç•™ã€‚</div>
+          <div className="modalHint">§Ú­Ì¥u¦s¥²­n¸ê°T¡A¥Î©ó¦P¨B°lÂÜ²M³æ¡C</div>
         </div>
       </div>
     </div>

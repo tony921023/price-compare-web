@@ -8,9 +8,9 @@ function parsePriceInput(v: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-const HOT_KEYWORDS = ["AirPods Pro 2", "iPhone 15", "SSD 1TB", "éµç›¤", "è€³æ©Ÿ", "ç‰™è†"];
+const HOT_KEYWORDS = ["AirPods Pro 2", "iPhone 15", "SSD 1TB", "Áä½L", "¦Õ¾÷", "¤ú»I"];
 const PRICE_PRESETS: Array<{ label: string; min?: number; max?: number }> = [
-  { label: "ä¸é™" },
+  { label: "¤£­­" },
   { label: "1k~3k", min: 1000, max: 3000 },
   { label: "3k~6k", min: 3000, max: 6000 },
   { label: "6k~9k", min: 6000, max: 9000 },
@@ -76,7 +76,7 @@ export default function SearchCard({ loggedIn, onResults, onLoading, onError, er
     const maxP = parsePriceInput(maxPriceText);
 
     if (minP != null && maxP != null && minP > maxP) {
-      onError("æœ€ä½åƒ¹ä¸èƒ½å¤§æ–¼æœ€é«˜åƒ¹");
+      onError("³Ì§C»ù¤£¯à°ª©ó³Ì°ª»ù");
       return;
     }
 
@@ -98,7 +98,7 @@ export default function SearchCard({ loggedIn, onResults, onLoading, onError, er
     } catch (e: unknown) {
       if (e instanceof DOMException && e.name === "AbortError") return;
       onResults([]);
-      onError(e instanceof Error ? e.message : "æœå°‹å¤±æ•—");
+      onError(e instanceof Error ? e.message : "µo¥Í¿ù»~");
     } finally {
       if (!ac.signal.aborted) {
         setLoading(false);
@@ -115,7 +115,9 @@ export default function SearchCard({ loggedIn, onResults, onLoading, onError, er
     const q = query.trim();
     if (!q) return;
 
-    const t = window.setTimeout(() => { doSearch(); }, 350);
+    const t = window.setTimeout(() => {
+      doSearch();
+    }, 350);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, minPriceText, maxPriceText]);
@@ -136,11 +138,17 @@ export default function SearchCard({ loggedIn, onResults, onLoading, onError, er
           className="input"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="ä¾‹å¦‚ï¼šAirPods Pro 2 / iPhone 15 / SSD 1TB"
-          onKeyDown={(e) => { if (e.key === "Enter") onSearch(); }}
+          placeholder="¨Ò¦p¡GAirPods Pro 2 / iPhone 15 / SSD 1TB"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") onSearch();
+          }}
         />
-        <button className={`btn ${loading || !query.trim() ? "" : "btnPrimary"}`} onClick={() => onSearch()} disabled={loading || !query.trim()}>
-          {loading ? "æœå°‹ä¸­â€¦" : "æœå°‹"}
+        <button
+          className={`btn ${loading || !query.trim() ? "" : "btnPrimary"}`}
+          onClick={() => onSearch()}
+          disabled={loading || !query.trim()}
+        >
+          {loading ? "·j´M¤¤¡K" : "·j´M"}
         </button>
       </div>
 
@@ -150,30 +158,34 @@ export default function SearchCard({ loggedIn, onResults, onLoading, onError, er
           value={minPriceText}
           onChange={(e) => setMinPriceText(e.target.value)}
           inputMode="numeric"
-          placeholder="æœ€ä½åƒ¹ï¼ˆä¾‹å¦‚ 5000ï¼‰"
-          onKeyDown={(e) => { if (e.key === "Enter") onSearch(); }}
+          placeholder="³Ì§C»ù¡]¨Ò¦p 5000¡^"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") onSearch();
+          }}
         />
         <input
           className="input"
           value={maxPriceText}
           onChange={(e) => setMaxPriceText(e.target.value)}
           inputMode="numeric"
-          placeholder="æœ€é«˜åƒ¹ï¼ˆä¾‹å¦‚ 9000ï¼‰"
-          onKeyDown={(e) => { if (e.key === "Enter") onSearch(); }}
+          placeholder="³Ì°ª»ù¡]¨Ò¦p 9000¡^"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") onSearch();
+          }}
         />
       </div>
 
       <div className="chipRow">
         {PRICE_PRESETS.map((p) => (
-          <button key={p.label} className="chipBtn" onClick={() => applyPreset(p)} type="button" title="å¥—ç”¨åƒ¹æ ¼å€é–“">
+          <button key={p.label} className="chipBtn" onClick={() => applyPreset(p)} type="button" title="§Ö³t®M¥Î»ù®æ°Ï¶¡">
             {p.label}
           </button>
         ))}
-        <span className="chipHint">ï¼ˆé»ä¸€ä¸‹å¿«é€Ÿå¥—ç”¨ï¼‰</span>
+        <span className="chipHint">ÂI¤@¤U§Ö³t®M¥Î</span>
       </div>
 
       <div className="chipRow">
-        <span className="chipLabel">ç†±é–€ï¼š</span>
+        <span className="chipLabel">¼öªù¡G</span>
         {HOT_KEYWORDS.map((k) => (
           <button key={k} className="chipBtn" onClick={() => onSearch(k)} type="button">
             {k}
@@ -183,14 +195,14 @@ export default function SearchCard({ loggedIn, onResults, onLoading, onError, er
 
       {recent.length > 0 && (
         <div className="chipRow">
-          <span className="chipLabel">æœ€è¿‘ï¼š</span>
+          <span className="chipLabel">³Ìªñ¡G</span>
           {recent.map((k) => (
             <span key={k} className="chipWrap">
               <button className="chipBtn" onClick={() => onSearch(k)} type="button">
                 {k}
               </button>
-              <button className="chipX" onClick={() => removeRecent(k)} title="ç§»é™¤" type="button">
-                Ã—
+              <button className="chipX" onClick={() => removeRecent(k)} title="²¾°£" type="button">
+                ¡Ñ
               </button>
             </span>
           ))}
@@ -198,7 +210,7 @@ export default function SearchCard({ loggedIn, onResults, onLoading, onError, er
       )}
 
       <div className="chips">
-        {["API å·²ä¸²æ¥", "å¤šå¹³å°æ¯”åƒ¹", loggedIn ? "å·²ç™»å…¥" : "æœªç™»å…¥"].map((t) => (
+        {["API ¤w¦ê±µ", "¦h¥­¥x¤ñ»ù", loggedIn ? "¤wµn¤J" : "¥¼µn¤J"].map((t) => (
           <span key={t} className="chip">
             {t}
           </span>

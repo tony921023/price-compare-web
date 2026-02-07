@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 import { type Offer, type Platform } from "./services/searchProducts";
 import { me, logout, type User } from "./services/auth";
@@ -20,7 +20,7 @@ function platformLabel(p: Platform) {
     case "pchome":
       return "PChome";
     case "shopee":
-      return "蝦皮";
+      return "Shopee";
   }
 }
 
@@ -59,7 +59,7 @@ export default function App() {
     try {
       await logout();
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "登出失敗");
+      setError(e instanceof Error ? e.message : "發生錯誤");
     } finally {
       setUser(null);
     }
@@ -67,7 +67,6 @@ export default function App() {
 
   return (
     <div className="page">
-      {/* Top bar */}
       <div className="topbar">
         <div className="brand">
           <img src="/logo.svg" alt="PricePulse" className="logoImg" />
@@ -99,29 +98,109 @@ export default function App() {
         </div>
       </div>
 
-      {/* Hero */}
-      <div className="hero">
-        <div className="heroTitle">用 10 秒找到「相對合理」的價格區間</div>
-        <div className="heroSub">先用搜尋頁 + 範圍過濾做 MVP；之後再換成平台官方/公開 API 或合作資料源。</div>
+      <div className="heroWrap">
+        <div className="heroCopy glassStrong">
+          <div className="heroEyebrow">PricePulse · 讓價格更透明</div>
+          <div className="heroTitle">用 10 秒找到「相對合理」的價格區間</div>
+          <div className="heroSub">
+            先用搜尋 + 篩選快速做 MVP，之後再接各平台官方/公開 API 或合作資料源。
+          </div>
+          <div className="heroActions">
+            <a className="btn btnPrimary" href="#search">
+              開始搜尋
+            </a>
+            <a className="btn btnGhost" href="#features">
+              了解功能
+            </a>
+          </div>
+          <div className="heroStats">
+            <div className="stat">
+              <div className="statValue">3</div>
+              <div className="statLabel">平台比價</div>
+            </div>
+            <div className="stat">
+              <div className="statValue">秒級</div>
+              <div className="statLabel">關鍵字搜尋</div>
+            </div>
+            <div className="stat">
+              <div className="statValue">可擴充</div>
+              <div className="statLabel">追蹤與提醒</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="heroPanel glass">
+          <div className="heroPanelHeader">
+            <span className="badgeAccent">工作流程</span>
+            <span className="panelTitle">比價清楚、決策更快</span>
+          </div>
+          <div className="miniList">
+            <div className="miniItem">
+              <div className="miniIcon">01</div>
+              <div>
+                <div className="miniTitle">輸入關鍵字</div>
+                <div className="miniSub">支援熱門商品與自訂品項</div>
+              </div>
+            </div>
+            <div className="miniItem">
+              <div className="miniIcon">02</div>
+              <div>
+                <div className="miniTitle">設定價格區間</div>
+                <div className="miniSub">用預設區間快速篩選</div>
+              </div>
+            </div>
+            <div className="miniItem">
+              <div className="miniIcon">03</div>
+              <div>
+                <div className="miniTitle">找到更合理價格</div>
+                <div className="miniSub">最低價一眼就知道</div>
+              </div>
+            </div>
+          </div>
+          <div className="panelFooter">追蹤清單與目標價提醒即將推出。</div>
+        </div>
       </div>
 
-      {/* Search card */}
-      <SearchCard
-        loggedIn={!!user}
-        onResults={setOffers}
-        onLoading={setLoading}
-        onError={setError}
-        error={error}
-      />
+      <div id="search" className="searchWrap">
+        <SearchCard
+          loggedIn={!!user}
+          onResults={setOffers}
+          onLoading={setLoading}
+          onError={setError}
+          error={error}
+        />
+      </div>
 
-      {/* Results */}
-      <div className="glass cardHover" style={{ marginTop: 16 }}>
+      <div id="features" className="featureGrid">
+        <div className="featureCard">
+          <div className="featureIcon">01</div>
+          <div className="featureTitle">快速比價</div>
+          <div className="featureSub">輸入關鍵字即可跨平台搜價，排序與區間篩選一鍵完成。</div>
+        </div>
+        <div className="featureCard">
+          <div className="featureIcon">02</div>
+          <div className="featureTitle">追蹤清單</div>
+          <div className="featureSub">登入後可收藏商品，未來會加入趨勢圖與目標價通知。</div>
+        </div>
+        <div className="featureCard">
+          <div className="featureIcon">03</div>
+          <div className="featureTitle">決策輔助</div>
+          <div className="featureSub">最低價標示、來源清楚，避免買貴，買得更安心。</div>
+        </div>
+      </div>
+
+      <div className="glass cardHover" style={{ marginTop: 18 }}>
         <div className="tableHeader">
           <div>平台</div>
           <div>商品</div>
           <div className="priceHeader">
             價格
-            <button className="sortBtn" onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))} type="button" title="切換排序">
+            <button
+              className="sortBtn"
+              onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
+              type="button"
+              title="切換排序"
+            >
               {sortDir === "asc" ? "↑" : "↓"}
             </button>
           </div>
@@ -149,19 +228,19 @@ export default function App() {
           </>
         ) : sorted.length === 0 ? (
           <div className="empty">
-            <div className="emptyEmoji">🔎</div>
+            <div className="emptyEmoji">搜尋</div>
             <div className="emptyTitle">尚無結果</div>
             <div className="emptySub">輸入關鍵字後按「搜尋」，或直接點上面的熱門/最近。</div>
           </div>
         ) : (
           sorted.map((o, idx) => {
-            const isBest = o.badge ? o.badge === "最低" : minPrice != null && o.price === minPrice;
+            const isBest = o.badge ? o.badge === "最低價" : minPrice != null && o.price === minPrice;
 
             return (
               <div key={`${o.platform}-${o.url}-${idx}`} className="row">
                 <div className="platform">
                   <span>{platformLabel(o.platform)}</span>
-                  {isBest ? <span className="badgeBest">最低</span> : <span className="badgeOk">可買</span>}
+                  {isBest ? <span className="badgeBest">最低價</span> : <span className="badgeOk">優惠中</span>}
                 </div>
 
                 <div className="title" title={o.title}>
@@ -179,8 +258,13 @@ export default function App() {
                     type="button"
                     onClick={() => {
                       navigator.clipboard?.writeText(o.url).then(
-                        () => { setCopiedUrl(o.url); setTimeout(() => setCopiedUrl(null), 1500); },
-                        () => { setCopiedUrl(null); },
+                        () => {
+                          setCopiedUrl(o.url);
+                          setTimeout(() => setCopiedUrl(null), 1500);
+                        },
+                        () => {
+                          setCopiedUrl(null);
+                        },
                       );
                     }}
                     title="複製連結"
@@ -199,7 +283,10 @@ export default function App() {
       <AuthModal
         open={authOpen}
         onClose={() => setAuthOpen(false)}
-        onLogin={(u) => { setUser(u); setAuthOpen(false); }}
+        onLogin={(u) => {
+          setUser(u);
+          setAuthOpen(false);
+        }}
       />
     </div>
   );
