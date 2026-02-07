@@ -7,13 +7,13 @@ async function json<T>(resp: Response): Promise<T> {
   return data as T;
 }
 
-/**
- * ✅ 重點：credentials: "include"
- * 讓跨 port（5173 -> 8787）時 cookie-session 能被瀏覽器存/帶上
- * （如果你是用 Vite proxy 讓 /api 走同源，也不會有副作用）
- */
+const REQ_TIMEOUT = 8000;
+
 export async function me(): Promise<User | null> {
-  const resp = await fetch("/api/auth/me", { credentials: "include" });
+  const resp = await fetch("/api/auth/me", {
+    credentials: "include",
+    signal: AbortSignal.timeout(REQ_TIMEOUT),
+  });
   const data = await json<{ user: User | null }>(resp);
   return data.user;
 }
@@ -24,6 +24,7 @@ export async function register(email: string, password: string): Promise<User> {
     headers: { "Content-Type": "application/json" },
     credentials: "include",
     body: JSON.stringify({ email, password }),
+    signal: AbortSignal.timeout(REQ_TIMEOUT),
   });
   const data = await json<{ user: User }>(resp);
   return data.user;
@@ -35,12 +36,17 @@ export async function login(email: string, password: string): Promise<User> {
     headers: { "Content-Type": "application/json" },
     credentials: "include",
     body: JSON.stringify({ email, password }),
+    signal: AbortSignal.timeout(REQ_TIMEOUT),
   });
   const data = await json<{ user: User }>(resp);
   return data.user;
 }
 
 export async function logout(): Promise<void> {
-  const resp = await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+  const resp = await fetch("/api/auth/logout", {
+    method: "POST",
+    credentials: "include",
+    signal: AbortSignal.timeout(REQ_TIMEOUT),
+  });
   if (!resp.ok) throw new Error(`登出失敗: HTTP ${resp.status}`);
 }

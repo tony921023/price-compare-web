@@ -70,7 +70,7 @@ export default function AuthModal({ open, onClose, onLogin }: Props) {
             {loading ? "處理中…" : mode === "login" ? "登入" : "註冊"}
           </button>
 
-          <div className="modalHint">目前是暫存 users（Map）；之後換 DB 只要把 auth routes 的 storage 換掉即可。</div>
+          <div className="modalHint">帳號資料已儲存至資料庫，重啟後仍保留。</div>
         </div>
       </div>
     </div>

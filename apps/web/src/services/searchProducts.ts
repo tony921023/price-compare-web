@@ -27,9 +27,10 @@ export async function searchProducts(query: string, opts: SearchOptions = {}): P
   if (typeof opts.minPrice === "number") sp.set("minPrice", String(opts.minPrice));
   if (typeof opts.maxPrice === "number") sp.set("maxPrice", String(opts.maxPrice));
 
-  const resp = await fetch(`/api/search?${sp.toString()}`, {
-    signal: opts.signal,
-  });
+  const timeoutSignal = AbortSignal.timeout(8000);
+  const signal = opts.signal ? AbortSignal.any([opts.signal, timeoutSignal]) : timeoutSignal;
+
+  const resp = await fetch(`/api/search?${sp.toString()}`, { signal });
 
   if (!resp.ok) throw new Error(`search failed: ${resp.status}`);
 
