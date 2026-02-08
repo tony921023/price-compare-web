@@ -11,6 +11,12 @@ function clamp(n, lo, hi) {
   return Math.min(hi, Math.max(lo, n));
 }
 
+// 用 seed 產生 0~1 之間的偽隨機數（不依賴 Math.random，保持可測試性）
+function seededRandom(seed) {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
 export function buildDemoItems(q, minPrice, maxPrice) {
   const now = new Date().toISOString();
 
@@ -24,9 +30,16 @@ export function buildDemoItems(q, minPrice, maxPrice) {
   const seed = hashToInt(q.trim().toLowerCase());
   const base = lo + (seed % range);
 
-  const pchomePrice = clamp(base + 0, lo, hi);
-  const shopeePrice = clamp(base + 120, lo, hi);
-  const momoPrice = clamp(base + 240, lo, hi);
+  // 加入時間波動：每次呼叫價格會有 ±5% 的隨機變化，讓趨勢圖有意義
+  const timeSeed = Date.now();
+  const jitter = (platformOffset) => {
+    const r = seededRandom(seed + timeSeed + platformOffset);
+    return Math.round((r - 0.5) * 0.1 * base); // ±5%
+  };
+
+  const pchomePrice = clamp(base + 0 + jitter(1), lo, hi);
+  const shopeePrice = clamp(base + 120 + jitter(2), lo, hi);
+  const momoPrice = clamp(base + 240 + jitter(3), lo, hi);
 
   const items = [
     {
