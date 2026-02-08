@@ -2,8 +2,11 @@
 import "./App.css";
 import { type Offer, type Platform } from "./services/searchProducts";
 import { me, logout, type User } from "./services/auth";
+import { addToWatchlist } from "./services/watchlist";
+import { getTriggeredAlerts, type TriggeredAlert } from "./services/alerts";
 import AuthModal from "./components/AuthModal";
 import SearchCard from "./components/SearchCard";
+import WatchlistPanel from "./components/WatchlistPanel";
 
 function formatTwd(n: number) {
   return new Intl.NumberFormat("zh-TW", {
@@ -34,12 +37,28 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
+  const [showWatchlist, setShowWatchlist] = useState(false);
+  const [currentQuery, setCurrentQuery] = useState<{ q: string; min: number | null; max: number | null } | null>(null);
+  const [externalQuery, setExternalQuery] = useState<{ q: string; min: number | null; max: number | null } | null>(null);
+  const [watchlistMsg, setWatchlistMsg] = useState<string | null>(null);
+  const [triggeredAlerts, setTriggeredAlerts] = useState<TriggeredAlert[]>([]);
+  const [showAlertList, setShowAlertList] = useState(false);
 
   useEffect(() => {
     me()
       .then((u) => setUser(u))
       .catch(() => setUser(null));
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      getTriggeredAlerts()
+        .then((a) => setTriggeredAlerts(a))
+        .catch(() => setTriggeredAlerts([]));
+    } else {
+      setTriggeredAlerts([]);
+    }
+  }, [user]);
 
   const sorted = useMemo(() => {
     const copy = [...offers];
@@ -92,10 +111,44 @@ export default function App() {
             </button>
           )}
 
-          <button className="btn" disabled title="即將推出">
+          <button
+            className="btn"
+            disabled={!user}
+            title={user ? "查看追蹤清單" : "請先登入"}
+            onClick={() => setShowWatchlist(true)}
+          >
             追蹤清單
           </button>
+
+          {user && (
+            <button
+              className="btn"
+              style={{ position: "relative" }}
+              onClick={() => setShowAlertList((v) => !v)}
+              title="提醒通知"
+            >
+              通知
+              {triggeredAlerts.length > 0 && (
+                <span className="notifBadge">{triggeredAlerts.length}</span>
+              )}
+            </button>
+          )}
         </div>
+
+        {showAlertList && triggeredAlerts.length > 0 && (
+          <div className="alertDropdown glass">
+            <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>最近觸發的提醒</div>
+            {triggeredAlerts.map((a) => (
+              <div key={a.id} style={{ fontSize: 12, padding: "4px 0", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+                <strong>{a.query}</strong> · {a.platform === "pchome" ? "PChome" : a.platform === "shopee" ? "Shopee" : "momo"}
+                {" "}&le; ${a.target_price.toLocaleString()}
+                <span style={{ opacity: 0.6, marginLeft: 6 }}>
+                  {new Date(a.last_triggered).toLocaleDateString("zh-TW")}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="heroWrap">
@@ -168,6 +221,8 @@ export default function App() {
           onLoading={setLoading}
           onError={setError}
           error={error}
+          onQueryChange={(q, min, max) => setCurrentQuery({ q, min, max })}
+          externalQuery={externalQuery}
         />
       </div>
 
@@ -271,12 +326,35 @@ export default function App() {
                   >
                     {copiedUrl === o.url ? "已複製" : "複製"}
                   </button>
+                  {user && currentQuery && (
+                    <button
+                      className="ghostBtn"
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          await addToWatchlist(currentQuery.q, currentQuery.min, currentQuery.max);
+                          setWatchlistMsg("已加入追蹤");
+                          setTimeout(() => setWatchlistMsg(null), 1500);
+                        } catch (e: unknown) {
+                          setWatchlistMsg(e instanceof Error ? e.message : "追蹤失敗");
+                          setTimeout(() => setWatchlistMsg(null), 2000);
+                        }
+                      }}
+                      title="加入追蹤清單"
+                    >
+                      追蹤
+                    </button>
+                  )}
                 </div>
               </div>
             );
           })
         )}
       </div>
+
+      {watchlistMsg && (
+        <div className="toast">{watchlistMsg}</div>
+      )}
 
       <div className="footer">提示：接下來做「登入後追蹤清單」→ 貼 URL 追蹤 → 每週趨勢 → 目標價提醒。</div>
 
@@ -288,6 +366,15 @@ export default function App() {
           setAuthOpen(false);
         }}
       />
+
+      {showWatchlist && (
+        <WatchlistPanel
+          onClose={() => setShowWatchlist(false)}
+          onSearch={(q, min, max) => {
+            setExternalQuery({ q, min, max });
+          }}
+        />
+      )}
     </div>
   );
 }

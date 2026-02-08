@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+ï»¿import { useEffect, useState } from "react";
 import { login, register, type User } from "../services/auth";
 
 type Props = {
@@ -23,7 +23,7 @@ export default function AuthModal({ open, onClose, onLogin }: Props) {
       setPassword("");
       onLogin(u);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "µo¥Í¿ù»~");
+      setError(e instanceof Error ? e.message : "ç™¼ç”ŸéŒ¯èª¤");
     } finally {
       setLoading(false);
     }
@@ -44,9 +44,9 @@ export default function AuthModal({ open, onClose, onLogin }: Props) {
     <div className="modalMask" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modalTop">
-          <div className="modalTitle">{mode === "login" ? "µn¤J" : "µù¥U"}</div>
+          <div className="modalTitle">{mode === "login" ? "ç™»å…¥" : "è¨»å†Š"}</div>
           <button className="modalX" onClick={onClose} type="button">
-            ¡Ñ
+            Ã—
           </button>
         </div>
 
@@ -56,14 +56,14 @@ export default function AuthModal({ open, onClose, onLogin }: Props) {
             onClick={() => setMode("login")}
             type="button"
           >
-            µn¤J
+            ç™»å…¥
           </button>
           <button
             className={`tabBtn ${mode === "register" ? "tabActive" : ""}`}
             onClick={() => setMode("register")}
             type="button"
           >
-            µù¥U
+            è¨»å†Š
           </button>
         </div>
 
@@ -80,7 +80,7 @@ export default function AuthModal({ open, onClose, onLogin }: Props) {
             className="input"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="±K½X¡]¦Ü¤Ö 6 ½X¡^"
+            placeholder="å¯†ç¢¼ï¼ˆè‡³å°‘ 6 ç¢¼ï¼‰"
             type="password"
             style={{ marginTop: 10 }}
             onKeyDown={(e) => {
@@ -91,10 +91,10 @@ export default function AuthModal({ open, onClose, onLogin }: Props) {
           {error && <div style={{ marginTop: 10, color: "crimson" }}>{error}</div>}
 
           <button className="btn btnPrimary" style={{ width: "100%", marginTop: 12 }} onClick={submit} disabled={loading}>
-            {loading ? "³B²z¤¤¡K" : mode === "login" ? "µn¤J" : "µù¥U"}
+            {loading ? "è™•ç†ä¸­â€¦" : mode === "login" ? "ç™»å…¥" : "è¨»å†Š"}
           </button>
 
-          <div className="modalHint">§Ú­Ì¥u¦s¥²­n¸ê°T¡A¥Î©ó¦P¨B°lÂÜ²M³æ¡C</div>
+          <div className="modalHint">æˆ‘å€‘åªå­˜å¿…è¦è³‡è¨Šï¼Œç”¨æ–¼åŒæ­¥è¿½è¹¤æ¸…å–®ã€‚</div>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+ï»¿import { useEffect, useRef, useState } from "react";
 import { searchProducts, type Offer } from "../services/searchProducts";
 
 function parsePriceInput(v: string): number | null {
@@ -8,9 +8,9 @@ function parsePriceInput(v: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-const HOT_KEYWORDS = ["AirPods Pro 2", "iPhone 15", "SSD 1TB", "Áä½L", "¦Õ¾÷", "¤ú»I"];
+const HOT_KEYWORDS = ["AirPods Pro 2", "iPhone 15", "SSD 1TB", "éµç›¤", "è€³æ©Ÿ", "ç‰™è†"];
 const PRICE_PRESETS: Array<{ label: string; min?: number; max?: number }> = [
-  { label: "¤£­­" },
+  { label: "ä¸é™" },
   { label: "1k~3k", min: 1000, max: 3000 },
   { label: "3k~6k", min: 3000, max: 6000 },
   { label: "6k~9k", min: 6000, max: 9000 },
@@ -22,9 +22,11 @@ type Props = {
   onLoading: (v: boolean) => void;
   onError: (msg: string | null) => void;
   error: string | null;
+  onQueryChange?: (q: string, min: number | null, max: number | null) => void;
+  externalQuery?: { q: string; min: number | null; max: number | null } | null;
 };
 
-export default function SearchCard({ loggedIn, onResults, onLoading, onError, error }: Props) {
+export default function SearchCard({ loggedIn, onResults, onLoading, onError, error, onQueryChange, externalQuery }: Props) {
   const [query, setQuery] = useState("");
   const [minPriceText, setMinPriceText] = useState("");
   const [maxPriceText, setMaxPriceText] = useState("");
@@ -42,6 +44,18 @@ export default function SearchCard({ loggedIn, onResults, onLoading, onError, er
 
   const abortRef = useRef<AbortController | null>(null);
   const mountedRef = useRef(false);
+  const prevExtRef = useRef(externalQuery);
+
+  useEffect(() => {
+    if (externalQuery && externalQuery !== prevExtRef.current) {
+      prevExtRef.current = externalQuery;
+      setQuery(externalQuery.q);
+      setMinPriceText(externalQuery.min != null ? String(externalQuery.min) : "");
+      setMaxPriceText(externalQuery.max != null ? String(externalQuery.max) : "");
+      doSearch({ nextQ: externalQuery.q });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [externalQuery]);
 
   function pushRecent(q: string) {
     const s = q.trim();
@@ -76,7 +90,7 @@ export default function SearchCard({ loggedIn, onResults, onLoading, onError, er
     const maxP = parsePriceInput(maxPriceText);
 
     if (minP != null && maxP != null && minP > maxP) {
-      onError("³Ì§C»ù¤£¯à°ª©ó³Ì°ª»ù");
+      onError("æœ€ä½åƒ¹ä¸èƒ½é«˜æ–¼æœ€é«˜åƒ¹");
       return;
     }
 
@@ -95,10 +109,11 @@ export default function SearchCard({ loggedIn, onResults, onLoading, onError, er
       if (ac.signal.aborted) return;
       onResults(items);
       pushRecent(q);
+      onQueryChange?.(q, minP, maxP);
     } catch (e: unknown) {
       if (e instanceof DOMException && e.name === "AbortError") return;
       onResults([]);
-      onError(e instanceof Error ? e.message : "µo¥Í¿ù»~");
+      onError(e instanceof Error ? e.message : "ç™¼ç”ŸéŒ¯èª¤");
     } finally {
       if (!ac.signal.aborted) {
         setLoading(false);
@@ -138,7 +153,7 @@ export default function SearchCard({ loggedIn, onResults, onLoading, onError, er
           className="input"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="¨Ò¦p¡GAirPods Pro 2 / iPhone 15 / SSD 1TB"
+          placeholder="ä¾‹å¦‚ï¼šAirPods Pro 2 / iPhone 15 / SSD 1TB"
           onKeyDown={(e) => {
             if (e.key === "Enter") onSearch();
           }}
@@ -148,7 +163,7 @@ export default function SearchCard({ loggedIn, onResults, onLoading, onError, er
           onClick={() => onSearch()}
           disabled={loading || !query.trim()}
         >
-          {loading ? "·j´M¤¤¡K" : "·j´M"}
+          {loading ? "æœå°‹ä¸­â€¦" : "æœå°‹"}
         </button>
       </div>
 
@@ -158,7 +173,7 @@ export default function SearchCard({ loggedIn, onResults, onLoading, onError, er
           value={minPriceText}
           onChange={(e) => setMinPriceText(e.target.value)}
           inputMode="numeric"
-          placeholder="³Ì§C»ù¡]¨Ò¦p 5000¡^"
+          placeholder="æœ€ä½åƒ¹ï¼ˆä¾‹å¦‚ 5000ï¼‰"
           onKeyDown={(e) => {
             if (e.key === "Enter") onSearch();
           }}
@@ -168,7 +183,7 @@ export default function SearchCard({ loggedIn, onResults, onLoading, onError, er
           value={maxPriceText}
           onChange={(e) => setMaxPriceText(e.target.value)}
           inputMode="numeric"
-          placeholder="³Ì°ª»ù¡]¨Ò¦p 9000¡^"
+          placeholder="æœ€é«˜åƒ¹ï¼ˆä¾‹å¦‚ 9000ï¼‰"
           onKeyDown={(e) => {
             if (e.key === "Enter") onSearch();
           }}
@@ -177,15 +192,15 @@ export default function SearchCard({ loggedIn, onResults, onLoading, onError, er
 
       <div className="chipRow">
         {PRICE_PRESETS.map((p) => (
-          <button key={p.label} className="chipBtn" onClick={() => applyPreset(p)} type="button" title="§Ö³t®M¥Î»ù®æ°Ï¶¡">
+          <button key={p.label} className="chipBtn" onClick={() => applyPreset(p)} type="button" title="å¿«é€Ÿå¥—ç”¨åƒ¹æ ¼å€é–“">
             {p.label}
           </button>
         ))}
-        <span className="chipHint">ÂI¤@¤U§Ö³t®M¥Î</span>
+        <span className="chipHint">é»ä¸€ä¸‹å¿«é€Ÿå¥—ç”¨</span>
       </div>
 
       <div className="chipRow">
-        <span className="chipLabel">¼öªù¡G</span>
+        <span className="chipLabel">ç†±é–€ï¼š</span>
         {HOT_KEYWORDS.map((k) => (
           <button key={k} className="chipBtn" onClick={() => onSearch(k)} type="button">
             {k}
@@ -195,14 +210,14 @@ export default function SearchCard({ loggedIn, onResults, onLoading, onError, er
 
       {recent.length > 0 && (
         <div className="chipRow">
-          <span className="chipLabel">³Ìªñ¡G</span>
+          <span className="chipLabel">æœ€è¿‘ï¼š</span>
           {recent.map((k) => (
             <span key={k} className="chipWrap">
               <button className="chipBtn" onClick={() => onSearch(k)} type="button">
                 {k}
               </button>
-              <button className="chipX" onClick={() => removeRecent(k)} title="²¾°£" type="button">
-                ¡Ñ
+              <button className="chipX" onClick={() => removeRecent(k)} title="ç§»é™¤" type="button">
+                Ã—
               </button>
             </span>
           ))}
@@ -210,7 +225,7 @@ export default function SearchCard({ loggedIn, onResults, onLoading, onError, er
       )}
 
       <div className="chips">
-        {["API ¤w¦ê±µ", "¦h¥­¥x¤ñ»ù", loggedIn ? "¤wµn¤J" : "¥¼µn¤J"].map((t) => (
+        {["API å·²ä¸²æ¥", "å¤šå¹³å°æ¯”åƒ¹", loggedIn ? "å·²ç™»å…¥" : "æœªç™»å…¥"].map((t) => (
           <span key={t} className="chip">
             {t}
           </span>
