@@ -96,7 +96,7 @@ export default function App() {
         </div>
 
         <div className="topActions">
-          <span className="pill">MVP v0</span>
+          <span className="pill">MVP v1</span>
 
           {user ? (
             <>
@@ -176,7 +176,7 @@ export default function App() {
               <div className="statLabel">關鍵字搜尋</div>
             </div>
             <div className="stat">
-              <div className="statValue">可擴充</div>
+              <div className="statValue">已上線</div>
               <div className="statLabel">追蹤與提醒</div>
             </div>
           </div>
@@ -210,7 +210,7 @@ export default function App() {
               </div>
             </div>
           </div>
-          <div className="panelFooter">追蹤清單與目標價提醒即將推出。</div>
+          <div className="panelFooter">追蹤清單、趨勢圖、目標價提醒已上線。</div>
         </div>
       </div>
 
@@ -235,7 +235,7 @@ export default function App() {
         <div className="featureCard">
           <div className="featureIcon">02</div>
           <div className="featureTitle">追蹤清單</div>
-          <div className="featureSub">登入後可收藏商品，未來會加入趨勢圖與目標價通知。</div>
+          <div className="featureSub">登入後可收藏商品，收集快照查看趨勢圖，設定目標價提醒。</div>
         </div>
         <div className="featureCard">
           <div className="featureIcon">03</div>
@@ -356,7 +356,7 @@ export default function App() {
         <div className="toast">{watchlistMsg}</div>
       )}
 
-      <div className="footer">提示：接下來做「登入後追蹤清單」→ 貼 URL 追蹤 → 每週趨勢 → 目標價提醒。</div>
+      <div className="footer">登入後追蹤清單 → 收集快照 → 查看趨勢 → 設定目標價提醒，一站搞定。</div>
 
       <AuthModal
         open={authOpen}
